@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oruç Bekçisi</title>
+  <style>
+    body { font-family: sans-serif; background: #fff; color: #333; text-align: center; padding: 2em; }
+    h1 { color: orange; }
+    .box { border-radius: 20px; padding: 1em; background: #d6ffcc; margin-top: 2em; display: inline-block; }
+    .time { font-size: 2em; margin-top: 0.5em; color: green; }
+  </style>
+</head>
+<body>
+  <h1>Oruç Bekçisi</h1>
+  <div class="box">
+    <p id="status">Durum: ...</p>
+    <p class="time" id="countdown">...</p>
+  </div>
+  <script>
+    function updateCountdown() {
+      const now = new Date();
+      const sahur = new Date();
+      sahur.setHours(4, 30, 0, 0);
+      const iftar = new Date();
+      iftar.setHours(19, 30, 0, 0);
+
+      let hedef, durum;
+      if (now >= sahur && now < iftar) {
+        hedef = iftar;
+        durum = "Oruç zamanı";
+      } else {
+        hedef = sahur;
+        durum = "Yemek zamanı";
+        if (now >= iftar) {
+          sahur.setDate(sahur.getDate() + 1);
+          hedef = sahur;
+        }
+      }
+
+      const diff = hedef - now;
+      const hours = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0');
+      const minutes = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
+      const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+
+      document.getElementById('status').innerText = "Durum: " + durum;
+      document.getElementById('countdown').innerText = `${hours}:${minutes}:${seconds}`;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+  </script>
+</body>
+</html>
