@@ -2,54 +2,114 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Oruç Bekçisi</title>
   <style>
-    body { font-family: sans-serif; background: #fff; color: #333; text-align: center; padding: 2em; }
+    body { font-family: sans-serif; background: #ffffff; color: #333; padding: 1.5em; text-align: center; }
     h1 { color: orange; }
-    .box { border-radius: 20px; padding: 1em; background: #d6ffcc; margin-top: 2em; display: inline-block; }
-    .time { font-size: 2em; margin-top: 0.5em; color: green; }
+    .box, .goal, .quote, .weight, .graph { background: #eaffdc; border-radius: 20px; padding: 1em; margin: 1em auto; max-width: 400px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .time { font-size: 2em; margin: 0.5em 0; color: green; }
+    .footer { margin-top: 2em; font-size: 0.9em; color: #888; }
+    input[type="number"] { padding: 0.5em; font-size: 1em; border-radius: 8px; border: 1px solid #ccc; width: 60%; margin-top: 0.5em; }
+    button { padding: 0.5em 1em; border: none; border-radius: 10px; background: orange; color: white; font-weight: bold; margin-top: 0.5em; }
   </style>
 </head>
 <body>
   <h1>Oruç Bekçisi</h1>
+
+  <!-- Zaman Kutusu -->
   <div class="box">
     <p id="status">Durum: ...</p>
     <p class="time" id="countdown">...</p>
   </div>
+
+  <!-- Hedef -->
+  <div class="goal">
+    <h3>Bugünkü Hedef:</h3>
+    <p>16 saat oruç – 8 saat beslenme</p>
+  </div>
+
+  <!-- Motivasyon -->
+  <div class="quote" id="quoteBox">
+    <p>"Güçlü olmak, her gün yeniden başlamaktır."</p>
+  </div>
+
+  <!-- Kilo Takibi -->
+  <div class="weight">
+    <h3>Kilo Takibi</h3>
+    <input type="number" id="weightInput" placeholder="Kilonuz (kg)"/>
+    <button onclick="saveWeight()">Kaydet</button>
+    <p id="savedWeight"></p>
+  </div>
+
+  <!-- Grafik (örnek) -->
+  <div class="graph">
+    <h3>Haftalık Durum</h3>
+    <p>Pzt: 16s | Sal: 15s | Çar: 16s | Per: 14s | Cum: 16s</p>
+  </div>
+
+  <div class="footer">© Oruç Bekçisi Web v2.1</div>
+
   <script>
     function updateCountdown() {
       const now = new Date();
-      const sahur = new Date();
-      sahur.setHours(4, 30, 0, 0);
-      const iftar = new Date();
-      iftar.setHours(19, 30, 0, 0);
-
+      const startTime = new Date(); startTime.setHours(10, 0, 0, 0);
+      const endTime = new Date(); endTime.setHours(18, 0, 0, 0);
       let hedef, durum;
-      if (now >= sahur && now < iftar) {
-        hedef = iftar;
-        durum = "Oruç zamanı";
+
+      if (now >= startTime && now < endTime) {
+        hedef = endTime; durum = "Oruç zamanı";
+        notify("Oruç zamanı devam ediyor.");
       } else {
-        hedef = sahur;
+        hedef = startTime;
+        if (now >= endTime) startTime.setDate(startTime.getDate() + 1);
         durum = "Yemek zamanı";
-        if (now >= iftar) {
-          sahur.setDate(sahur.getDate() + 1);
-          hedef = sahur;
-        }
+        notify("Yemek zamanı başladı.");
       }
 
       const diff = hedef - now;
-      const hours = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0');
-      const minutes = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
-      const seconds = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
-
-      document.getElementById('status').innerText = "Durum: " + durum;
-      document.getElementById('countdown').innerText = `${hours}:${minutes}:${seconds}`;
+      const h = String(Math.floor(diff / 1000 / 60 / 60)).padStart(2, '0');
+      const m = String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0');
+      const s = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+      document.getElementById("status").innerText = "Durum: " + durum;
+      document.getElementById("countdown").innerText = `${h}:${m}:${s}`;
     }
-
     setInterval(updateCountdown, 1000);
     updateCountdown();
+
+    function notify(msg) {
+      if (Notification.permission === "granted") {
+        new Notification(msg);
+      }
+    }
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+
+    function saveWeight() {
+      const kg = document.getElementById("weightInput").value;
+      localStorage.setItem("weight", kg);
+      document.getElementById("savedWeight").innerText = "Kaydedilen kilo: " + kg + " kg";
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem("weight");
+      if (saved) document.getElementById("savedWeight").innerText = "Kaydedilen kilo: " + saved + " kg";
+      rotateQuote();
+    }
+
+    const quotes = [
+      "Güçlü olmak, her gün yeniden başlamaktır.",
+      "Disiplin, özgürlüğün anahtarıdır.",
+      "Vazgeçme, bugün zor olabilir ama yarın daha kolay olacak.",
+      "Zihninle bedenin arasında uyum kurarsan, başarı kaçınılmazdır.",
+      "Bir gün değil, her gün ilerle."
+    ];
+    function rotateQuote() {
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById("quoteBox").innerHTML = `<p>"${q}"</p>`;
+    }
   </script>
 </body>
 </html>
